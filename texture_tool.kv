@@ -1,0 +1,168 @@
+#:import FadeTransition kivy.uix.screenmanager.FadeTransition
+
+ScreenManager:
+    transition: FadeTransition()
+    SetupScreen:
+    MainScreen:
+    DetailScreen:
+
+# 2. 首次启动引导屏
+<SetupScreen>:
+    name: 'setup'
+    MDBoxLayout:
+        orientation: 'vertical'
+        padding: dp(24)
+        spacing: dp(16)
+        md_bg_color: 0.1, 0.1, 0.1, 1
+        
+        MDLabel:
+            text: "工具初始化配置"
+            halign: "center"
+            font_style: "H4"
+            theme_text_color: "Custom"
+            text_color: 0, 0.5, 1, 1
+            size_hint_y: 0.2
+            
+        MDTextField:
+            id: in_input
+            hint_text: "输入目录路径 (in)"
+            helper_text: "请填写资源源文件目录"
+            helper_text_mode: "on_light"
+            current_hint_text_color: 0.7,0.7,0.7,1
+            
+        MDTextField:
+            id: out_input
+            hint_text: "输出目录路径 (out)"
+            helper_text: "修改后的资产将存放在这"
+            helper_text_mode: "on_light"
+            
+        MDRaisedButton:
+            text: "完成配置并进入主页"
+            pos_hint: {"center_x": .5}
+            size_hint_x: 0.8
+            on_release: root.save_and_continue()
+
+# 3. 主页文件与列表浏览屏
+<MainScreen>:
+    name: 'main'
+    MDBoxLayout:
+        orientation: 'vertical'
+        md_bg_color: 0.08, 0.08, 0.08, 1
+        
+        MDTopAppBar:
+            title: "输入文件夹流览"
+            elevation: 4
+            right_action_items: [["refresh", lambda x: root.refresh_in_dir()], ["cog", lambda x: root.go_to_settings()]]
+            
+        MDBoxLayout:
+            orientation: 'horizontal'
+            padding: dp(8)
+            size_hint_y: 0.08
+            spacing: dp(8)
+            
+            MDTextField:
+                id: search_bar
+                hint_text: "搜索贴图..."
+                size_hint_x: 0.6
+                on_text: root.on_search(self.text)
+                
+            MDRaisedButton:
+                id: filter_btn
+                text: "✓ 仅显示_tex"
+                size_hint_x: 0.4
+                on_release: root.toggle_filter()
+
+        # 分割视窗：未打开文件时显示文件浏览器，打开后显示贴图列表
+        ScreenManager:
+            id: view_manager
+            
+            Screen:
+                name: 'file_list_mode'
+                ScrollView:
+                    MDList:
+                        id: file_container
+                        
+            Screen:
+                name: 'texture_list_mode'
+                ScrollView:
+                    MDList:
+                        id: texture_container
+
+# 7. 详情查看与高级交互屏 (支持双指缩放查看与平移)
+<DetailScreen>:
+    name: 'detail'
+    MDBoxLayout:
+        orientation: 'vertical'
+        md_bg_color: 0.05, 0.05, 0.05, 1
+        
+        MDTopAppBar:
+            title: "贴图详情魔改"
+            anchor_title: "center"
+            left_action_items: [["arrow-left", lambda x: root.go_back()]]
+            
+        # 核心：利用 Kivy Scatter 控件原生支持双指缩放、拖拽查看大图
+        BoxLayout:
+            size_hint_y: 0.5
+            padding: dp(8)
+            canvas.before:
+                Color:
+                    rgba: 0.15, 0.15, 0.15, 1
+                Rectangle:
+                    pos: self.pos
+                    size: self.size
+            Scatter:
+                id: scatter_container
+                do_rotation: False  # 禁止旋转，只允许缩放与拖动
+                auto_bring_to_front: True
+                size: image_view.size
+                Image:
+                    id: image_view
+                    source: ''
+                    size_hint: None, None
+                    size: self.texture_size if self.texture else (100, 100)
+                    
+        ScrollView:
+            size_hint_y: 0.3
+            MDBoxLayout:
+                orientation: 'vertical'
+                padding: dp(16)
+                spacing: dp(12)
+                adaptive_height: True
+                
+                MDLabel:
+                    id: lbl_name
+                    text: "名称: "
+                    font_style: "Body1"
+                MDLabel:
+                    id: lbl_res
+                    text: "分辨率: "
+                    font_style: "Body2"
+                MDLabel:
+                    id: lbl_fmt
+                    text: "格式: "
+                    font_style: "Body2"
+                MDLabel:
+                    id: lbl_mip
+                    text: "MipMap支持: "
+                    font_style: "Body2"
+                    
+        MDBoxLayout:
+            orientation: 'horizontal'
+            size_hint_y: 0.1
+            padding: dp(8)
+            spacing: dp(12)
+            
+            MDRaisedButton:
+                text: "⬇️ 导出至相册"
+                size_hint_x: 0.33
+                on_release: root.export_to_gallery()
+            MDRaisedButton:
+                text: "🔄 替换贴图"
+                size_hint_x: 0.33
+                md_bg_color: 0.2, 0.6, 0.2, 1
+                on_release: root.replace_texture()
+            MDRaisedButton:
+                text: "💾 保存修改"
+                size_hint_x: 0.33
+                md_bg_color: 0.8, 0.2, 0.2, 1
+                on_release: root.save_asset_out()
