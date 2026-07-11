@@ -36,7 +36,7 @@ version = 0.1
 
 # (list) Application requirements
 # comma separated e.g. requirements = sqlite3,kivy
-requirements = python3,kivy==2.3.0,kivymd==1.1.1,pillow,unitypy,plyer,pyjnius,android,androidstorage
+requirements = python3,kivy,kivymd,pillow,UnityPy,plyer,pyjnius,android
 
 # (str) Custom source folders for requirements
 # Sets custom source for any requirements with recipes
@@ -85,7 +85,7 @@ android.minapi = 24
 # android.skip_update = False
 
 # (bool) If True, then automatically accept SDK license agreements
-# android.accept_sdk_license = False
+android.accept_sdk_license = True
 
 # (str) Android entry point, default is ok for Kivy-based app
 # android.entrypoint = org.kivy.android.PythonActivity
